@@ -1,0 +1,8 @@
+{
+  "name": "Smart Home Dashboard",
+  "description": "A glassmorphism-style smart home dashboard with voice commands, Gemini AI integration, weather, reminders, and news.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation"
+  ]
+}
