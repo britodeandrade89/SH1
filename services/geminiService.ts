@@ -1,8 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { addReminderToDB } from "./firebase";
 
-// Initialize the client directly with process.env.API_KEY as per guidelines.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to get AI instance safely
+const getAIClient = () => {
+  // Check if API Key exists to avoid crashing
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) return null;
+  return new GoogleGenAI({ apiKey });
+};
 
 interface ProcessResult {
   action: 'add_reminder' | 'chat' | 'error';
@@ -12,8 +17,11 @@ interface ProcessResult {
 }
 
 export const processCommandWithGemini = async (command: string): Promise<ProcessResult> => {
-  if (!process.env.API_KEY) {
-    return { action: 'error', response: "Erro: API Key não configurada." };
+  const ai = getAIClient();
+  
+  if (!ai) {
+    console.error("API Key missing");
+    return { action: 'error', response: "Erro: Chave de API não configurada." };
   }
 
   const systemPrompt = `
@@ -84,7 +92,8 @@ export const processCommandWithGemini = async (command: string): Promise<Process
 };
 
 export const askChefAI = async (ingredients: string): Promise<string> => {
-  if (!process.env.API_KEY) return "Erro: API Key indisponível.";
+  const ai = getAIClient();
+  if (!ai) return "Erro: API Key indisponível.";
   
   try {
     const response = await ai.models.generateContent({
