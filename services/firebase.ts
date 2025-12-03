@@ -1,4 +1,4 @@
-import * as firebaseApp from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   getFirestore, 
   collection, 
@@ -8,7 +8,6 @@ import {
 } from 'firebase/firestore';
 
 // --- CONFIGURAÇÃO FIREBASE ---
-// Note: In a production app, these should be environment variables.
 const firebaseConfig = {
   apiKey: "AIzaSyBKR1LrqLsAU1k1gcV2Dw0Co70Ubn4j8OQ",
   authDomain: "lista-de-compras-4420b.firebaseapp.com",
@@ -22,8 +21,8 @@ const firebaseConfig = {
 let db: Firestore | null = null;
 
 try {
-  // Use namespace import and check for existing apps to handle HMR/Re-init
-  const app = firebaseApp.getApps().length > 0 ? firebaseApp.getApp() : firebaseApp.initializeApp(firebaseConfig);
+  // Use named imports to check for existing apps
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   db = getFirestore(app);
   console.log("Firebase inicializado com sucesso.");
 } catch (error) {
@@ -34,7 +33,6 @@ export const getDB = () => db;
 
 export const addReminderToDB = async (text: string, type: 'info' | 'alert' | 'action' = 'info') => {
   if (!db) {
-    // Silent fail or local handling if offline
     return;
   }
   try {

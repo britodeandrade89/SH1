@@ -55,7 +55,7 @@ const NewsWidget = ({ category, color, data, index }: { category: string, color:
     <div className={`w-1 h-full rounded-full ${color} opacity-80`} />
     <div className="w-12 h-12 rounded-lg bg-white/10 overflow-hidden relative shrink-0">
        <Newspaper className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/20" size={16} />
-       {data[index]?.img && <img src={data[index].img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80" />}
+       {data[index]?.img && <img src={data[index].img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-90 transition-transform hover:scale-110" />}
     </div>
     <div className="flex-1 min-w-0">
        <div className="flex justify-between mb-1">
@@ -256,24 +256,23 @@ const App = () => {
     }
   }, []);
 
-  // News Cycle with Contextual Images
+  // News Cycle with BETTER Contextual Images
   useEffect(() => {
-    // Manually curated images for the hardcoded news
     const newsContent = {
        politica: [
-           { text: "Lula defende cooperação internacional no G20.", img: "https://images.unsplash.com/photo-1540910419868-474947ce5b27?auto=format&fit=crop&w=150&q=80" },
-           { text: "Câmara aprova reforma tributária em primeiro turno.", img: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?auto=format&fit=crop&w=150&q=80" },
-           { text: "Senado discute novas regras para IA.", img: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=150&q=80" }
+           { text: "Lula defende cooperação internacional no G20.", img: "https://images.unsplash.com/photo-1529108190281-9a4f72008eac?auto=format&fit=crop&w=300&q=80" }, // G20/Meeting
+           { text: "Câmara aprova reforma tributária em primeiro turno.", img: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=300&q=80" }, // Finance/Gov
+           { text: "Senado discute novas regras para IA.", img: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=300&q=80" } // Tech/Robot
        ],
        esportes: [
-           { text: "Flamengo investe em novo centro de treinamento.", img: "https://images.unsplash.com/photo-1579952363873-27f3bde9be2e?auto=format&fit=crop&w=150&q=80" },
-           { text: "Brasil vence amistoso preparatório para a copa.", img: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=150&q=80" },
-           { text: "Vôlei: Seleção garante vaga com vitória histórica.", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=150&q=80" }
+           { text: "Flamengo investe em novo centro de treinamento.", img: "https://images.unsplash.com/photo-1522778119026-d647f0565c6a?auto=format&fit=crop&w=300&q=80" }, // Stadium
+           { text: "Brasil vence amistoso preparatório para a copa.", img: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=300&q=80" }, // Brazil Jersey
+           { text: "Vôlei: Seleção garante vaga com vitória histórica.", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=300&q=80" } // Volleyball
        ],
        cultura: [
-           { text: "Filme brasileiro é premiado em Cannes.", img: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=150&q=80" },
-           { text: "Festival de Jazz atrai multidão em SP.", img: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&w=150&q=80" },
-           { text: "Nova exposição imersiva de Van Gogh chega ao Rio.", img: "https://images.unsplash.com/photo-1578321272182-37851cf96d00?auto=format&fit=crop&w=150&q=80" }
+           { text: "Filme brasileiro é premiado em Cannes.", img: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=300&q=80" }, // Cinema
+           { text: "Festival de Jazz atrai multidão em SP.", img: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&w=300&q=80" }, // Music
+           { text: "Nova exposição imersiva de Van Gogh chega ao Rio.", img: "https://images.unsplash.com/photo-1578321272182-37851cf96d00?auto=format&fit=crop&w=300&q=80" } // Art
        ]
     };
 

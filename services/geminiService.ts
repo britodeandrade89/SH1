@@ -1,12 +1,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { addReminderToDB } from "./firebase";
 
-// Helper to get AI instance safely
+// Chave fornecida pelo usuário. 
+// Em produção real, deve-se usar um proxy ou variáveis de ambiente de build (Vite/Next), 
+// mas para este ambiente de navegador, usamos a constante direta para evitar o erro "process is not defined".
+const API_KEY = "AIzaSyBKR1LrqLsAU1k1gcV2Dw0Co70Ubn4j8OQ";
+
 const getAIClient = () => {
-  // Check if API Key exists to avoid crashing
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) return null;
-  return new GoogleGenAI({ apiKey });
+  if (!API_KEY) return null;
+  return new GoogleGenAI({ apiKey: API_KEY });
 };
 
 interface ProcessResult {
