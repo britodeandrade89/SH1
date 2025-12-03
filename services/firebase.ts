@@ -22,7 +22,7 @@ const firebaseConfig = {
 let db: Firestore | null = null;
 
 try {
-  // Use namespace import access for initializeApp to avoid named export issues in some environments
+  // Use namespace import to access initializeApp which handles different module resolution scenarios
   const app = firebaseApp.initializeApp(firebaseConfig);
   db = getFirestore(app);
   console.log("Firebase inicializado com sucesso.");
@@ -34,7 +34,7 @@ export const getDB = () => db;
 
 export const addReminderToDB = async (text: string, type: 'info' | 'alert' | 'action' = 'info') => {
   if (!db) {
-    console.warn("DB not initialized, skipping save.");
+    // Silent fail or local handling if offline
     return;
   }
   try {

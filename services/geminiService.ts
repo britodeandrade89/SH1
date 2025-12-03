@@ -1,8 +1,7 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { addReminderToDB } from "./firebase";
 
-// Initialize Gemini
-// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+// Initialize the client directly with process.env.API_KEY as per guidelines.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 interface ProcessResult {
@@ -13,6 +12,10 @@ interface ProcessResult {
 }
 
 export const processCommandWithGemini = async (command: string): Promise<ProcessResult> => {
+  if (!process.env.API_KEY) {
+    return { action: 'error', response: "Erro: API Key não configurada." };
+  }
+
   const systemPrompt = `
     Você é o "Smart Home", o assistente da casa de André e Marcelly.
     Analise o comando: "${command}".
@@ -60,7 +63,6 @@ export const processCommandWithGemini = async (command: string): Promise<Process
       }
     });
 
-    // Use .text property directly
     const rawText = response.text;
     if (!rawText) {
        return { action: 'error', response: "Erro: Resposta vazia do modelo." };
@@ -82,6 +84,8 @@ export const processCommandWithGemini = async (command: string): Promise<Process
 };
 
 export const askChefAI = async (ingredients: string): Promise<string> => {
+  if (!process.env.API_KEY) return "Erro: API Key indisponível.";
+  
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
