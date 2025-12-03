@@ -10,7 +10,7 @@ import {
 // --- CONFIGURAÇÃO FIREBASE ---
 // Note: In a production app, these should be environment variables.
 const firebaseConfig = {
-  apiKey: "AIzaSyDrwC791rplIiqOeXKZTlCaacM8YhKkQdw",
+  apiKey: "AIzaSyBKR1LrqLsAU1k1gcV2Dw0Co70Ubn4j8OQ",
   authDomain: "lista-de-compras-4420b.firebaseapp.com",
   projectId: "lista-de-compras-4420b",
   storageBucket: "lista-de-compras-4420b.firebasestorage.app",
@@ -22,8 +22,8 @@ const firebaseConfig = {
 let db: Firestore | null = null;
 
 try {
-  // Use namespace import to access initializeApp which handles different module resolution scenarios
-  const app = firebaseApp.initializeApp(firebaseConfig);
+  // Use namespace import and check for existing apps to handle HMR/Re-init
+  const app = firebaseApp.getApps().length > 0 ? firebaseApp.getApp() : firebaseApp.initializeApp(firebaseConfig);
   db = getFirestore(app);
   console.log("Firebase inicializado com sucesso.");
 } catch (error) {

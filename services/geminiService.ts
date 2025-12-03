@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { addReminderToDB } from "./firebase";
 
 // Initialize the client directly with process.env.API_KEY as per guidelines.
@@ -29,7 +29,7 @@ export const processCommandWithGemini = async (command: string): Promise<Process
     Set action="chat".
   `;
 
-  const responseSchema: Schema = {
+  const responseSchema = {
     type: Type.OBJECT,
     properties: {
       action: {
