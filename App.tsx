@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   CloudRain, Sun, Moon, ArrowRight, ArrowLeft, Bell, Sparkles, ChefHat, X, Send, Newspaper, Plus, MapPin, 
-  Settings, Mic, Lock, Unlock, Thermometer, Droplets, Wind, ArrowUp, ArrowDown
+  Settings, Mic, Lock, Unlock, Thermometer, Droplets, Wind, ArrowUp, ArrowDown, Search, Loader2
 } from 'lucide-react';
 import { 
   collection, 
@@ -111,8 +111,14 @@ const App = () => {
   const [chefResponse, setChefResponse] = useState('');
   const [isChefLoading, setIsChefLoading] = useState(false);
   
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isTrainingOpen, setIsTrainingOpen] = useState(false);
   const [trainingStep, setTrainingStep] = useState(0);
+
+  // Settings: Location Search
+  const [citySearch, setCitySearch] = useState('');
+  const [cityResults, setCityResults] = useState<any[]>([]);
+  const [isSearchingCity, setIsSearchingCity] = useState(false);
 
   // Refs
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -223,16 +229,24 @@ const App = () => {
     return () => clearInterval(timer);
   }, [lastDetectedPerson]);
 
-  useEffect(() => {
-    // Attempt Geolocation
+  const handleGpsLocation = () => {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((pos) => {
             setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
             setGpsActive(true);
             setLocationName("Localização Atual");
         }, () => {
-            console.log("GPS denied, using default");
+            console.log("GPS denied");
+            alert("Não foi possível obter sua localização. Verifique as permissões do navegador.");
         });
+    }
+  };
+
+  useEffect(() => {
+    // Attempt Geolocation on mount only if not set
+    if (locationName === 'Maricá, RJ' && !gpsActive) {
+        // Optional: Auto-trigger GPS on load
+        // handleGpsLocation();
     }
 
     const getWeather = async () => {
@@ -360,6 +374,30 @@ const App = () => {
       }
   };
 
+  const handleSearchCity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!citySearch.trim()) return;
+    setIsSearchingCity(true);
+    try {
+        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(citySearch)}&count=5&language=pt&format=json`);
+        const data = await res.json();
+        setCityResults(data.results || []);
+    } catch (error) {
+        console.error("Erro na busca de cidade", error);
+    } finally {
+        setIsSearchingCity(false);
+    }
+  };
+
+  const handleSelectCity = (city: any) => {
+      setCoords({ lat: city.latitude, lon: city.longitude });
+      setLocationName(`${city.name}, ${city.admin1 || ''} ${city.country_code}`);
+      setGpsActive(false);
+      setCityResults([]);
+      setCitySearch('');
+      setIsSettingsOpen(false);
+  };
+
   const WeatherIcon = () => {
     const { is_day, weathercode } = weather;
     if (weathercode >= 51) return <CloudRain className="text-blue-300 drop-shadow-lg" size={80} />;
@@ -428,7 +466,7 @@ const App = () => {
                             {weather.temperature !== '--' ? Math.round(Number(weather.temperature)) + '°' : '--'}
                           </span>
                           <span className="text-xs uppercase opacity-80 flex items-center gap-1 mt-1">
-                            {gpsActive && <MapPin size={10} />} {locationName}
+                            {gpsActive && <MapPin size={10} className="text-green-400" />} {locationName}
                           </span>
                       </div>
                       <div className="drop-shadow-lg"><WeatherIcon /></div>
@@ -613,7 +651,7 @@ const App = () => {
 
       {/* Settings / Lock */}
       <div className="absolute bottom-6 left-6 z-50 flex items-center gap-2">
-        <button onClick={() => setIsTrainingOpen(true)} className="bg-black/40 backdrop-blur hover:bg-white/10 p-3 rounded-full border border-white/5 transition-colors text-white/70 hover:text-white">
+        <button onClick={() => setIsSettingsOpen(true)} className="bg-black/40 backdrop-blur hover:bg-white/10 p-3 rounded-full border border-white/5 transition-colors text-white/70 hover:text-white">
             <Settings size={20} />
         </button>
         <button onClick={toggleWakeLock} className="p-3 bg-black/40 backdrop-blur rounded-full border border-white/5 text-white/50 hover:bg-white/10 transition-colors">
@@ -621,9 +659,93 @@ const App = () => {
         </button>
       </div>
 
-      {/* Voice ID Modal */}
-      {isTrainingOpen && (
+      {/* Global Settings Modal */}
+      {isSettingsOpen && (
         <div className="absolute inset-0 z-[70] bg-black/80 backdrop-blur-xl flex items-center justify-center p-8 animate-fade-in">
+            <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-lg shadow-2xl relative flex flex-col max-h-[80vh] overflow-hidden">
+                <div className="p-6 border-b border-white/10 flex justify-between items-center">
+                   <h2 className="text-xl font-bold flex items-center gap-2"><Settings size={20} /> Configurações</h2>
+                   <button onClick={() => setIsSettingsOpen(false)} className="text-white/50 hover:text-white"><X size={20} /></button>
+                </div>
+                
+                <div className="p-6 overflow-y-auto space-y-8">
+                    
+                    {/* Location Section */}
+                    <div>
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-white/50 mb-4 flex items-center gap-2">
+                            <MapPin size={16} /> Localização & Clima
+                        </h3>
+                        
+                        <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                            <div className="flex gap-2 mb-4">
+                                <input 
+                                    className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+                                    placeholder="Buscar cidade..."
+                                    value={citySearch}
+                                    onChange={(e) => setCitySearch(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearchCity(e)}
+                                />
+                                <button 
+                                    onClick={handleSearchCity}
+                                    className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-colors"
+                                    disabled={isSearchingCity}
+                                >
+                                    {isSearchingCity ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
+                                </button>
+                            </div>
+
+                            {cityResults.length > 0 && (
+                                <div className="bg-black/50 rounded-lg mb-4 overflow-hidden border border-white/10">
+                                    {cityResults.map((city) => (
+                                        <button 
+                                            key={city.id}
+                                            onClick={() => handleSelectCity(city)}
+                                            className="w-full text-left p-3 hover:bg-white/10 transition-colors border-b border-white/5 last:border-0 flex flex-col"
+                                        >
+                                            <span className="font-bold text-sm">{city.name}</span>
+                                            <span className="text-xs text-white/50">{city.admin1}, {city.country}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            <button 
+                                onClick={() => {
+                                    handleGpsLocation();
+                                    setIsSettingsOpen(false);
+                                }}
+                                className="w-full py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors border border-blue-500/20"
+                            >
+                                <MapPin size={16} /> Usar Localização Atual (GPS)
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Voice Section */}
+                    <div>
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-white/50 mb-4 flex items-center gap-2">
+                            <Mic size={16} /> Voz & Identificação
+                        </h3>
+                        <button 
+                            onClick={() => { setIsSettingsOpen(false); setIsTrainingOpen(true); }}
+                            className="w-full py-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-left px-4 flex justify-between items-center group transition-colors"
+                        >
+                            <div>
+                                <div className="font-bold">Calibrar Reconhecimento</div>
+                                <div className="text-xs text-white/50">Definir quem está usando o painel</div>
+                            </div>
+                            <ArrowRight size={16} className="text-white/30 group-hover:text-white transition-colors" />
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* Voice ID Modal (Separate) */}
+      {isTrainingOpen && (
+        <div className="absolute inset-0 z-[80] bg-black/80 backdrop-blur-xl flex items-center justify-center p-8 animate-fade-in">
             <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 w-full max-w-lg shadow-2xl relative text-center">
                 <button onClick={() => { setIsTrainingOpen(false); setTrainingStep(0); }} className="absolute top-4 right-4 text-white/50 hover:text-white"><X size={20} /></button>
                 <div className="flex justify-center mb-6">
