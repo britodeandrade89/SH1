@@ -4,6 +4,12 @@ export interface WeatherData {
   is_day: number;
   apparent_temperature: number | string;
   precipitation_probability: number;
+  // Novos campos
+  relative_humidity: number | string;
+  wind_speed: number | string;
+  temp_max: number | string;
+  temp_min: number | string;
+  daily_precip_probability: number | string;
 }
 
 export interface Reminder {

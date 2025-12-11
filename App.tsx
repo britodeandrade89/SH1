@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   CloudRain, Sun, Moon, ArrowRight, ArrowLeft, Bell, Sparkles, ChefHat, X, Send, Newspaper, Plus, MapPin, 
-  Settings, Mic, Lock, Unlock, Thermometer, Droplets
+  Settings, Mic, Lock, Unlock, Thermometer, Droplets, Wind, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { 
   collection, 
@@ -70,7 +70,18 @@ const NewsWidget = ({ category, color, data, index }: { category: string, color:
 const App = () => {
   // State
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [weather, setWeather] = useState<WeatherData>({ temperature: '--', weathercode: 0, is_day: 1, apparent_temperature: '--', precipitation_probability: 0 });
+  const [weather, setWeather] = useState<WeatherData>({ 
+    temperature: '--', 
+    weathercode: 0, 
+    is_day: 1, 
+    apparent_temperature: '--', 
+    precipitation_probability: 0,
+    relative_humidity: '--',
+    wind_speed: '--',
+    temp_max: '--',
+    temp_min: '--',
+    daily_precip_probability: 0
+  });
   const [locationName, setLocationName] = useState('Maricá, RJ');
   const [coords, setCoords] = useState({ lat: -22.9194, lon: -42.8186 });
   const [gpsActive, setGpsActive] = useState(false);
@@ -226,7 +237,7 @@ const App = () => {
 
     const getWeather = async () => {
       try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,apparent_temperature,is_day,weather_code&hourly=precipitation_probability&timezone=America/Sao_Paulo`);
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=precipitation_probability&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo`);
         const data = await res.json();
         if (data?.current) {
            const h = new Date().getHours();
@@ -235,7 +246,12 @@ const App = () => {
              apparent_temperature: data.current.apparent_temperature,
              is_day: data.current.is_day,
              weathercode: data.current.weather_code,
-             precipitation_probability: data.hourly?.precipitation_probability?.[h] || 0
+             precipitation_probability: data.hourly?.precipitation_probability?.[h] || 0,
+             relative_humidity: data.current.relative_humidity_2m,
+             wind_speed: data.current.wind_speed_10m,
+             temp_max: data.daily?.temperature_2m_max?.[0] || '--',
+             temp_min: data.daily?.temperature_2m_min?.[0] || '--',
+             daily_precip_probability: data.daily?.precipitation_probability_max?.[0] || 0
            });
         }
       } catch (e) { console.error(e); }
@@ -256,23 +272,23 @@ const App = () => {
     }
   }, []);
 
-  // News Cycle with BETTER Contextual Images
+  // News Cycle
   useEffect(() => {
     const newsContent = {
        politica: [
-           { text: "Lula defende cooperação internacional no G20.", img: "https://images.unsplash.com/photo-1529108190281-9a4f72008eac?auto=format&fit=crop&w=300&q=80" }, // G20/Meeting
-           { text: "Câmara aprova reforma tributária em primeiro turno.", img: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=300&q=80" }, // Finance/Gov
-           { text: "Senado discute novas regras para IA.", img: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=300&q=80" } // Tech/Robot
+           { text: "Lula defende cooperação internacional no G20.", img: "https://images.unsplash.com/photo-1529108190281-9a4f72008eac?auto=format&fit=crop&w=300&q=80" }, 
+           { text: "Câmara aprova reforma tributária em primeiro turno.", img: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=300&q=80" }, 
+           { text: "Senado discute novas regras para IA.", img: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=300&q=80" } 
        ],
        esportes: [
-           { text: "Flamengo investe em novo centro de treinamento.", img: "https://images.unsplash.com/photo-1522778119026-d647f0565c6a?auto=format&fit=crop&w=300&q=80" }, // Stadium
-           { text: "Brasil vence amistoso preparatório para a copa.", img: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=300&q=80" }, // Brazil Jersey
-           { text: "Vôlei: Seleção garante vaga com vitória histórica.", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=300&q=80" } // Volleyball
+           { text: "Flamengo investe em novo centro de treinamento.", img: "https://images.unsplash.com/photo-1522778119026-d647f0565c6a?auto=format&fit=crop&w=300&q=80" }, 
+           { text: "Brasil vence amistoso preparatório para a copa.", img: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=300&q=80" }, 
+           { text: "Vôlei: Seleção garante vaga com vitória histórica.", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=300&q=80" } 
        ],
        cultura: [
-           { text: "Filme brasileiro é premiado em Cannes.", img: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=300&q=80" }, // Cinema
-           { text: "Festival de Jazz atrai multidão em SP.", img: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&w=300&q=80" }, // Music
-           { text: "Nova exposição imersiva de Van Gogh chega ao Rio.", img: "https://images.unsplash.com/photo-1578321272182-37851cf96d00?auto=format&fit=crop&w=300&q=80" } // Art
+           { text: "Filme brasileiro é premiado em Cannes.", img: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=300&q=80" }, 
+           { text: "Festival de Jazz atrai multidão em SP.", img: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&w=300&q=80" }, 
+           { text: "Nova exposição imersiva de Van Gogh chega ao Rio.", img: "https://images.unsplash.com/photo-1578321272182-37851cf96d00?auto=format&fit=crop&w=300&q=80" } 
        ]
     };
 
@@ -291,8 +307,6 @@ const App = () => {
   // Layout Resizing
   const handleResizeMove = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isResizingWidth.current && !isResizingHeight.current) return;
-    
-    // Normalize touch/mouse
     const cx = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
     const cy = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
     
@@ -346,16 +360,16 @@ const App = () => {
       }
   };
 
-  // Render Helpers
   const WeatherIcon = () => {
     const { is_day, weathercode } = weather;
-    if (weathercode >= 51) return <CloudRain className="text-blue-300" size={48} />;
-    return is_day === 1 ? <Sun className="text-yellow-300" size={48} /> : <Moon className="text-yellow-100" size={48} />;
+    if (weathercode >= 51) return <CloudRain className="text-blue-300 drop-shadow-lg" size={80} />;
+    return is_day === 1 ? <Sun className="text-yellow-300 drop-shadow-lg" size={80} /> : <Moon className="text-yellow-100 drop-shadow-lg" size={80} />;
   };
 
-  const bgStyle = weather.is_day ? 
+  // Fixed Night Image URL
+  const bgStyle = weather.is_day === 1 ? 
     { backgroundImage: `url("https://images.unsplash.com/photo-1622396481328-9b1b78cdd9fd?q=80&w=1920&auto=format&fit=crop")`, backgroundSize: 'cover', backgroundPosition: 'center' } : 
-    { backgroundImage: `url("https://images.unsplash.com/photo-1472552944129-b035e9ea43cc?q=80&w=1920&auto=format&fit=crop")`, backgroundSize: 'cover', backgroundPosition: 'center' };
+    { backgroundImage: `url("https://images.unsplash.com/photo-1519681393798-2f13f0010021?q=80&w=1920&auto=format&fit=crop")`, backgroundSize: 'cover', backgroundPosition: 'center' };
 
   const allReminders = [...getCyclicalReminders(currentTime), ...reminders];
   const dateInfo = {
@@ -401,20 +415,75 @@ const App = () => {
            </ResizableWidget>
            
            <div className="flex flex-col items-end gap-2">
-             <div className="flex gap-2">
+             <div className="flex gap-2 justify-end mb-2">
                <button onClick={() => setIsChefOpen(true)} className="bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors backdrop-blur-sm border border-white/5"><ChefHat size={20} /></button>
              </div>
              <ResizableWidget scale={scales.tr} onScaleChange={(s) => setScales({...scales, tr: s})} origin="top right">
-                <div className="flex items-center gap-4 bg-black/20 p-4 rounded-3xl backdrop-blur-sm border border-white/5">
-                   <div className="flex flex-col items-end">
-                      <span className="text-6xl font-medium leading-none">{weather.temperature !== '--' ? Math.round(Number(weather.temperature)) + '°' : '--'}</span>
-                      <span className="text-xs uppercase opacity-80 flex items-center gap-1 mt-1">{gpsActive && <MapPin size={10} />} {locationName}</span>
-                      <div className="flex gap-2 text-xs opacity-70 mt-1">
-                        <span className="flex gap-1 items-center"><Thermometer size={10}/> {weather.apparent_temperature !== '--' ? Math.round(Number(weather.apparent_temperature)) + '°' : '--'}</span>
-                        <span className="flex gap-1 items-center"><Droplets size={10}/> {weather.precipitation_probability}%</span>
+                <div className="flex flex-col items-end gap-2 bg-black/20 p-6 rounded-3xl backdrop-blur-sm border border-white/5 shadow-xl min-w-[300px]">
+                   
+                   {/* Row 1: Main Temp & Icon */}
+                   <div className="flex items-center justify-end gap-6 w-full">
+                      <div className="flex flex-col items-end">
+                          <span className="text-8xl font-medium leading-none tracking-tighter">
+                            {weather.temperature !== '--' ? Math.round(Number(weather.temperature)) + '°' : '--'}
+                          </span>
+                          <span className="text-xs uppercase opacity-80 flex items-center gap-1 mt-1">
+                            {gpsActive && <MapPin size={10} />} {locationName}
+                          </span>
+                      </div>
+                      <div className="drop-shadow-lg"><WeatherIcon /></div>
+                   </div>
+
+                   {/* Row 2: Large Secondary Info */}
+                   <div className="flex justify-end gap-6 mt-2 w-full border-b border-white/10 pb-4">
+                      <div className="flex flex-col items-end">
+                         <span className="text-xs uppercase text-white/50 mb-1">Sensação</span>
+                         <span className="text-4xl font-light flex items-center gap-1">
+                            <Thermometer size={24} className="text-white/70" />
+                            {weather.apparent_temperature !== '--' ? Math.round(Number(weather.apparent_temperature)) + '°' : '--'}
+                         </span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                         <span className="text-xs uppercase text-white/50 mb-1">Chuva Hoje</span>
+                         <span className="text-4xl font-light flex items-center gap-1">
+                            <CloudRain size={24} className="text-blue-300/70" />
+                            {weather.precipitation_probability}%
+                         </span>
                       </div>
                    </div>
-                   <div className="drop-shadow-lg"><WeatherIcon /></div>
+
+                   {/* Row 3: Humidity & Wind */}
+                   <div className="flex justify-between w-full mt-2 px-2">
+                      <div className="flex flex-col items-start">
+                         <span className="text-[10px] uppercase text-white/50">Umidade</span>
+                         <span className="text-xl flex items-center gap-2">
+                             <Droplets size={16} className="text-blue-200" /> {weather.relative_humidity}%
+                         </span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                         <span className="text-[10px] uppercase text-white/50">Vento</span>
+                         <span className="text-xl flex items-center gap-2">
+                             {weather.wind_speed} <span className="text-sm text-white/50">km/h</span> <Wind size={16} className="text-white/70" />
+                         </span>
+                      </div>
+                   </div>
+
+                   {/* Row 4: Daily Summary */}
+                   <div className="w-full bg-white/5 rounded-xl p-3 mt-2 flex justify-between items-center text-sm">
+                      <span className="text-[10px] uppercase font-bold tracking-wider opacity-60">Hoje</span>
+                      <div className="flex gap-4">
+                         <span className="flex items-center gap-1 text-red-300 font-medium">
+                            <ArrowUp size={12} /> {weather.temp_max !== '--' ? Math.round(Number(weather.temp_max)) + '°' : '--'}
+                         </span>
+                         <span className="flex items-center gap-1 text-blue-300 font-medium">
+                            <ArrowDown size={12} /> {weather.temp_min !== '--' ? Math.round(Number(weather.temp_min)) + '°' : '--'}
+                         </span>
+                         <span className="flex items-center gap-1 text-blue-200">
+                            <CloudRain size={12} /> {weather.daily_precip_probability}%
+                         </span>
+                      </div>
+                   </div>
+
                 </div>
              </ResizableWidget>
            </div>
